@@ -11,4 +11,4 @@ class ExtendedSocket(BaseSocket):
         # Override the 'echo' event from BaseSocket
         @sio.event
         def echo(sid, data):
-            print(f"Extended socket heards session id <{sid}> say: '{data}'")
+            print(f"Extended socket heard session id <{sid}> say: '{data}'")

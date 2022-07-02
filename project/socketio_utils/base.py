@@ -26,5 +26,4 @@ class BaseSocket:
 
         @sio.event
         async def echo(sid, data):
-            print(f"BaseSocket hears session id <{sid}> say: '{data}'")
-
+            print(f"BaseSocket heard session id <{sid}> say: '{data}'")

@@ -1,0 +1,186 @@
+* TL;DR
+
+The first and foremost choice should be using a reproducible environment
+like =docker=. However, if you cannot do that for any reason, this might
+help you.
+
+In this project, one can set up a =FastAPI= application template with
+=SocketIO= and =Celery= that is compatible with Python =3.6.5= (Ubuntu
+=18.04 LTS=). This setup is intended for =air-gap= servers that do not
+have access to internet. So the =FastAPI= static files are served from the
+host as well.
+
+* License
+
+A template back-end with =FastAPI= [1], =SocketIO= [2] and =Celery= [3] for
+air-gap servers running =python 3.6.5+=.
+
+Original author:
+    Pedram Ashofteh Ardakani <pedramardakani@pm.me>
+Contributing author(s):
+
+Copyright(c) 2022
+
+The main structure is heavily inspired from Michael Yin's [4] article "The
+Definitive Guide to Celery and FastAPI" [5]. However, I've integrated
+=SocketIO= and prepared this template for air-gap servers.  It is worthy
+of note that the =FastAPI= docs are served in the =/static= directory as
+instructed by Sebastián Ramírez (aka tiangolo) [6].
+
+[1] https://github.com/tiangolo/fastapi
+[2] https://github.com/miguelgrinberg/python-socketio
+[3] https://github.com/celery/celery
+[4] https://testdriven.io/authors/yin/
+[5] https://testdriven.io/courses/fastapi-celery/app-factory/
+[6] https://fastapi.tiangolo.com/advanced/extending-openapi/#self-hosting-javascript-and-css-for-docs
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+version 3 or later as published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; see the file COPYING.LIB.  If not, write
+to the Free Software Foundation, Inc., 51 Franklin Street, Fifth
+Floor, Boston, MA 02110-1301, USA.
+
+
+* Prepare the environment
+
+First, download the requirements on your local machine:
+
+  #+BEGIN_EXAMPLE bash
+  $ mkdir to-upload
+  $ cd to-upload
+  $ python3 -m pip download -r requirements.txt
+  #+END_EXAMPLE
+
+Now upload them to the server using (e.g. using =scp= or =rsync=):
+
+  #+BEGIN_EXAMPLE bash
+  $ rsync -rvuz --progress * USERNAME@SERVERADDRESS:/path/to/requirements
+  #+END_EXAMPLE
+
+=SSH= to server and create a virtual environment if you need to:
+
+  #+BEGIN_EXAMPLE bash
+  $ ssh USERNAME@SERVERADDRESS
+  (server) $ cd /path/to/your/project
+  (server) $ python3 -m venv .venv
+  #+END_EXAMPLE
+
+You can now activate the virtual environment and install all the
+requirements:
+
+  #+BEGIN_EXAMPLE bash
+  (server) $ source /path/to/your/project/.venv/bin/activate
+  (.venv)  $ cd /path/to/requirements
+  (.venv)  $ python3 -m pip install *
+  #+END_EXAMPLE
+
+If you get errors here, read them carefully. Sometimes you need to download
+a package with another version. But if everything installed correctly, go
+to the next step.
+
+* Test the program
+
+Upload your program to the server, activate the virtual environment, and
+run the program as is:
+
+  #+BEGIN_EXAMPLE bash
+  $ rsync -rvuz /path/to/your/program USERNAME@SERVERADDRESS:/path/to/your/project
+  $ ssh USERNAME@SERVERADDRESS
+  (server) $ cd /path/to/your/project
+  (server) $ source .venv/bin/activate
+  (.venv)  $ uvicorn main:app --host 0.0.0.0 --port 8000
+  #+END_EXAMPLE
+
+Look out for any errors. If everything goes smoothly, you'd be able to see
+an output like below and connect to the SocketIO and FastAPI routes.
+
+  #+BEGIN_EXAMPLE bash
+  INFO:     Started server process [10082]
+  INFO:     Waiting for application start up.
+  INFO:     Application start up complete.
+  INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+  #+END_EXAMPLE
+
+** SocketIO
+
+If you don't already have a =socketio= client installed on your local
+machine, you can do so with the following command:
+
+   : python3 -m pip install python-socketio[client]
+
+Now you can follow the test:
+
+  #+BEGIN_EXAMPLE python
+  import socketio
+
+  sio = socketio.Client()
+
+  # Enter SERVERADDRESS here. But if running locally:
+  sio.connect("127.0.0.1:8000")
+
+  sio.emit("echo", "Hello There!")
+  #+END_EXAMPLE
+
+Now the =uvicorn= program should give you an output like this:
+
+  #+BEGIN_EXAMPLE bash
+  INFO:     Started server process [10082]
+  INFO:     Waiting for application start-up.
+  INFO:     Application start-up complete.
+  INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+  INFO:     172.18.1.1:45222 - "GET /socket.io/?transport=polling&EIO=4&t=1656757289.22189 HTTP/1.1" 200 OK
+  INFO:     ('172.18.1.1', 45230) - "WebSocket /socket.io/" [accepted]
+  on connect: jKStnNxPP-VqEqUxAAAB
+  Extended socket heard session id <jKStnNxPP-VqEqUxAAAB> say: 'Hello There!'
+  #+END_EXAMPLE
+
+Please note that the first time =SocketIO= connects, it will try for =long
+polling= and then it will try to upgrade the connection to =websocket=. If
+it fails, it will let you know.
+
+** FastAPI
+
+You can simply open up your browser and look up the server URLs. Here, the
+uvicorn is serving on my localhost:
+
+  #+BEGIN_EXAMPLE bash
+  $ curl http://127.0.0.1:8000
+  {"message":"hello world"}
+  #+END_EXAMPLE
+
+Now, you can simply check the default swagger-ui docs generated with your
+browser:
+
+  #+BEGIN_EXAMPLE bash
+  $ firefox http://127.0.0.1:8000/docs
+  #+END_EXAMPLE
+
+You should be able to see the documentation now. =uvicorn= should report a
+similar output:
+
+  #+BEGIN_EXAMPLE bash
+  INFO:     127.0.0.1:42358 - "GET /docs HTTP/1.1" 200 OK
+  INFO:     127.0.0.1:55888 - "GET /static/swagger-ui-bundle.js HTTP/1.1" 200 OK
+  INFO:     127.0.0.1:42358 - "GET /static/swagger-ui.css HTTP/1.1" 200 OK
+  INFO:     127.0.0.1:55888 - "GET /openapi.json HTTP/1.1" 200 OK
+  #+END_EXAMPLE
+
+This means that the static files are served successfully.
+
+* Adding socketio events
+
+You can simply append your =socketio= endpoints to the following file:
+=/path/to/your/project/socketio_utils/extended.py=
+
+* Adding FlaskAPI routes
+
+You can simply append your =FastAPI= routes to the following file:
+=/path/to/your/project/__init__.py=
