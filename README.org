@@ -4,6 +4,10 @@ The first and foremost choice should be using a reproducible environment
 like =docker=. However, if you cannot do that for any reason, this might
 help you.
 
+If you don't care about your Python version, check the up-to-date section
+below. However, if you are specifically looking for Python =3.6.5=, follow
+the rest.
+
 In this project, one can set up a =FastAPI= application template with
 =SocketIO= and =Celery= that is compatible with Python =3.6.5= (Ubuntu
 =18.04 LTS=). This setup is intended for =air-gap= servers that do not
@@ -28,10 +32,15 @@ of note that the =FastAPI= docs are served in the =/static= directory as
 instructed by Sebastián Ramírez (aka tiangolo) [6].
 
 [1] https://github.com/tiangolo/fastapi
+
 [2] https://github.com/miguelgrinberg/python-socketio
+
 [3] https://github.com/celery/celery
+
 [4] https://testdriven.io/authors/yin/
+
 [5] https://testdriven.io/courses/fastapi-celery/app-factory/
+
 [6] https://fastapi.tiangolo.com/advanced/extending-openapi/#self-hosting-javascript-and-css-for-docs
 
 This program is free software; you can redistribute it and/or
@@ -51,13 +60,32 @@ Floor, Boston, MA 02110-1301, USA.
 
 * Prepare the environment
 
-First, download the requirements on your local machine:
+First, if you are specifically looking for python =3.6.5= download the
+requirements with the =requirements.txt= file on your local machine. This
+file contains the software versions that are compatible to python =3.6.5=.
+
+Otherwise, if you want to install everything on your own machine or just
+use the most-recent version of the software, follow the *up-to-date*
+version.
+
+** Python =3.6.5= specific software for =offline= use
 
   #+BEGIN_EXAMPLE bash
   $ mkdir to-upload
   $ cd to-upload
   $ python3 -m pip download -r requirements.txt
   #+END_EXAMPLE
+
+** Up-to-date software for =current version= use
+
+  #+BEGIN_EXAMPLE bash
+  $ python3 -m venv .venv
+  $ source .venv/bin/activate
+  (.venv) $ python3 -m pip install pydantic fastapi python-socketio \
+                                   uvicorn[standard] redis celery
+  #+END_EXAMPLE
+
+** Uploading to server
 
 Now upload them to the server using (e.g. using =scp= or =rsync=):
 

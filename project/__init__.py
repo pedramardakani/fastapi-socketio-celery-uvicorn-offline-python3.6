@@ -2,7 +2,7 @@ from typing import Union
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-
+from .routers import router
 from project.config import settings
 from project.celery_utils import create_celery
 from project.socketio_utils import create_socketio
@@ -47,19 +47,7 @@ def create_app() -> FastAPI:
     async def root():
         return {"message": "hello world"}
 
-    @app.get("/items/{item_id}")
-    async def read_item(item_id: int, q: Union[str, None] = None):
-        return {"item_id": item_id, "q": q}
-
-    class Item(BaseModel):
-        name: str
-        price: float
-        is_offer: Union[bool, None] = None
-
-    @app.put("/items/{item_id}")
-    async def update_item(item_id: int, item: Item):
-        return {"item_name": item.name, "item_id": item_id}
-
+    app.include_router(router)
 
     # Create and add the socketio server application
     socket_app = create_socketio()
