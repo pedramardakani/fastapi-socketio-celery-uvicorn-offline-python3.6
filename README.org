@@ -116,6 +116,16 @@ to the next step.
 
 * Test the program
 
+** In developement
+
+Just use the =dev.sh= script to start up and =stop.sh= to stop all the
+programs.
+
+: $ ./run.sh
+: $ ./stop.sh
+
+** In production
+
 Upload your program to the server, activate the virtual environment, and
 run the program as is:
 
@@ -123,8 +133,7 @@ run the program as is:
   $ rsync -rvuz /path/to/your/program USERNAME@SERVERADDRESS:/path/to/your/project
   $ ssh USERNAME@SERVERADDRESS
   (server) $ cd /path/to/your/project
-  (server) $ source .venv/bin/activate
-  (.venv)  $ uvicorn main:app --host 0.0.0.0 --port 8000
+  (server) $ ./run.sh
   #+END_EXAMPLE
 
 Look out for any errors. If everything goes smoothly, you'd be able to see
@@ -203,12 +212,50 @@ similar output:
 
 This means that the static files are served successfully.
 
-* Adding socketio events
+* Updating endpoints, etc.
+
+** Adding socketio events
 
 You can simply append your =socketio= endpoints to the following file:
-=/path/to/your/project/socketio_utils/extended.py=
+=/PATH/TO/APP/socketio_utils/extended.py=
 
-* Adding FlaskAPI routes
+** Adding FastAPI routes
 
 You can simply append your =FastAPI= routes to the following file:
-=/path/to/your/project/__init__.py=
+=/PATH/TO/APP/routes/__init__.py=
+
+** Adding Celery tasks
+
+You can simply append your =Celery= tasks to the following file:
+=/PATH/TO/APP/tasks/__init__.py=
+
+* Using as a service
+
+** Starting as service for the first time
+
+Modify the contents of the =uvicorn.service=, =celery.service=, and
+=project.env= as needed. Then copy the =.service= files to
+=/etc/systemd/system/= directory. Finally enable and start the services
+using:
+
+: sudo systemctl enable celery.service uvicorn.service=
+: sudo systemctl start celery.service uvicorn.service=
+
+** Modifying the services
+
+Whenever you modify the =.service= files and run the following command for
+them to take effect before restarting:
+
+: sudo systemctl daemon-reload
+: sudo systemctl restart uvicorn.service celery.service
+
+** Checking status
+
+You might want to check the service status or see the logs and outputs for
+yourself. For that, just use the following command:
+
+: sudo systemctl status uvicorn.service
+
+and/or:
+
+: sudo systemctl status celery.service

@@ -1,0 +1,16 @@
+[Unit]
+Description=Uvicorn Server
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=APPUSER
+RestartSec=1
+Restart=always
+WorkingDirectory=/PATH/TO/APP
+EnvironmentFile=/PATH/TO/APP/project.env
+ExecStart=/bin/bash -c 'source .venv/bin/activate && python3 -m uvicorn main:app --host 0.0.0.0 --port 8000'
+
+[Install]
+WantedBy=multi-user.target
